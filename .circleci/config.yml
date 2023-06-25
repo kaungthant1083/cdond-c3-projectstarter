@@ -1,5 +1,23 @@
 version: 2.1
 
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    parameters:
+      Workflow_ID:
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7}
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+              # Empty frontend bucket
+              aws s3 rm s3://udapeople-<<parameters.Workflow_ID>> --recursive
+              # Delete frontend stack
+              aws cloudformation delete-stack --stack-name udacity-frontend-<< parameters.Workflow_ID >>
+              # Delete backend stack
+              aws cloudformation delete-stack --stack-name udacity-backend-<< parameters.Workflow_ID >> 
 jobs: 
   build-frontend:
     docker:
@@ -93,6 +111,46 @@ jobs:
              npm audit fix --audit-level=critical --force 
              npm audit fix --force
              npm audit --audit-level=critical
+  
+  deploy-infrastructure:
+    docker: 
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - install_tar_unzip
+      - run:
+          name: Ensure Backend Infra exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udacity \
+              --stack-name "udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udacity
+      - run:
+          name: Ensure Frontend Infra exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udacity \
+              --stack-name "udacity-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+              --tags project=udacity
+      - run:
+          name: Add backend application ip to ansible inventory
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            echo $BACKEND_IP >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      - destroy-environment
+      
 workflows:
   default:
     jobs:
@@ -106,3 +164,8 @@ workflows:
           requires: [build-frontend]
       - scan-backend:
           requires: [build-backend]
+      - deploy-instrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [master]
