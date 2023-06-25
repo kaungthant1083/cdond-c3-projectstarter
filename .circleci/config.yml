@@ -152,7 +152,7 @@ jobs:
       - destroy-environment
       
 workflows:
-  defaults:
+  default:
     jobs:
       - build-frontend
       - build-backend
