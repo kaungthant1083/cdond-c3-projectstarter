@@ -13,11 +13,11 @@ commands:
           when: on_fail
           command: |
               # Empty frontend bucket
-              aws s3 rm s3://udapeople-<<parameters.Workflow_ID>> --recursive
+              aws s3 rm s3://udapeople-kt123456 --recursive
               # Delete frontend stack
-              aws cloudformation delete-stack --stack-name udacity-frontend-<< parameters.Workflow_ID >>
+              aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
               # Delete backend stack
-              aws cloudformation delete-stack --stack-name udacity-backend-<< parameters.Workflow_ID >> 
+              aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >> 
 jobs: 
   build-frontend:
     docker:
@@ -125,24 +125,24 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=udacity \
-              --stack-name "udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
-              --tags project=udacity
+              --tags project=udapeople
       - run:
           name: Ensure Frontend Infra exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=udacity \
-              --stack-name "udacity-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
-              --tags project=udacity
+              --tags project=udapeople
       - run:
           name: Add backend application ip to ansible inventory
           command: |
             BACKEND_IP=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --filters "Name=tag:Name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text)
             echo $BACKEND_IP >> .circleci/ansible/inventory.txt
