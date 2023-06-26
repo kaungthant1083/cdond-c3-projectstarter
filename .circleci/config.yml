@@ -4,10 +4,6 @@ commands:
   create-dotenv-file:
     description: Create .env file 
     steps:
-      - run: 
-          name: Add env vars
-          command: | 
-           steps:
       - run:
           name: Add env vars to .env file
           command: |
