@@ -215,7 +215,7 @@ jobs:
   
   run-migrations:
     docker:
-      - image: node/node:13.8.0-alpine
+      - image: node/13.8.0
     steps:
       - checkout
       - run:
@@ -247,7 +247,7 @@ jobs:
   
   deploy-frontend:
     docker: 
-      - image: node/node:13.8.0-alpine
+      - image: node/13.8.0
     steps:
       - checkout
       - run:
