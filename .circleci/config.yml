@@ -157,7 +157,7 @@ jobs:
       - image: cimg:python:3.10
     steps:
       - checkout
-       - run:
+      - run:
           name: Install AWS Cli V2
           command: | 
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
