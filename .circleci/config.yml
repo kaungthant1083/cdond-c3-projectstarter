@@ -15,9 +15,9 @@ commands:
               # Empty frontend bucket
               aws s3 rm s3://udapeople-kt123456 --recursive
               # Delete frontend stack
-              aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
+              aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
               # Delete backend stack
-              aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >> 
+              aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
   revert-migration: 
     description: Revert the last migration if somethings wrong in workflow
     parameters:
