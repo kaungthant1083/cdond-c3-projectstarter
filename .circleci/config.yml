@@ -152,6 +152,36 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment
+  configure-infrastructure: 
+    docker: 
+      - image: python:3.8-alpine3.17
+    steps:
+      - checkout
+      - run:
+          name: Install tar & Zip
+          command: yum -y install tar gzip
+      - run:
+          name: Install AWS Cli V2
+          command: | 
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run: 
+          name: Install Ansible
+          command: |
+            python3 -m pip install --user ansible
+      - attach_workspace:
+          at: .
+      - add_ssh_keys:
+          fingerprints:
+            - "79:0c:e3:cd:0c:ab:6b:f9:80:d5:c9:83:b2:4b:ed:f9"
+      - run:
+          name: Configure server
+          command: | 
+            cd .circleci/ansible
+            cat inventory.txt 
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy-environment
       
 workflows:
   default:
@@ -171,3 +201,5 @@ workflows:
           filters:
             branches:
               only: [master]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
