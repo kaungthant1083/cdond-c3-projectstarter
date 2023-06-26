@@ -4,32 +4,38 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      Workflow_ID:
+      workflowID:
         type: string
-        default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
+      - run:
+          name: Add Workflow ID to destory 
+          when: on_fail
+          command: echo "workflowID=${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Destroy environments
           when: on_fail
           command: |
               # Empty frontend bucket
-              aws s3 rm s3://udapeople-kt123456 --recursive
+              aws s3 rm s3://udapeople-<< parameters.workflowID >> --recursive
               # Delete frontend stack
-              aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflowID >>
               # Delete backend stack
-              aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflowID >>
   revert-migration: 
     description: Revert the last migration if somethings wrong in workflow
     parameters:
-       Workflow_ID:
+      workflowID:
         type: string
-        default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
+      - run:
+          name: Add Workflow ID to revert
+          when: on_fail
+          command: echo "workflowID=${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Revert the migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.Workflow_ID >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.workflowID >>)
             # Logic for reverting the database state
             if (( $SUCCESS == 2 ));
             then
@@ -226,7 +232,7 @@ jobs:
       - run:
           name: Send migration results to kvdb.io
           command: |
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            if grep -q "has been executed successfully." ./backend/migrations_dump.txt
             then
               curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '2'
             else
