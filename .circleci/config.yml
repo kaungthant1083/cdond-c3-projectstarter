@@ -228,7 +228,7 @@ jobs:
           name: Run migrations data
           command: |
             cd backend
-            npm install
+            pwd
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
