@@ -242,7 +242,7 @@ jobs:
               echo "No migrations are pending" 
             fi
       - destroy-environment
-      - revert-migrations 
+      - revert-migration
 
 workflows:
   default:
