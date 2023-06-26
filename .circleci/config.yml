@@ -1,7 +1,7 @@
 version: 2.1
 
 commands:
-  create-dotenv-files:
+  create-dotenv-file:
     description: Create .env file 
     steps:
       - run: 
@@ -238,6 +238,7 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - create-dotenv-file
       - run:
           name: Install AWS Cli V2
           command: | 
@@ -249,6 +250,7 @@ jobs:
           command: |
             cd backend
             pwd
+            npm install
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
