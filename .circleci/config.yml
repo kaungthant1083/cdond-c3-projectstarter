@@ -237,7 +237,7 @@ jobs:
   
   deploy-frontend:
     docker: 
-      - image: circleci:node:13.8.0
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - run:
@@ -268,7 +268,64 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment 
+      - revert-migration
 
+  deploy-backend:
+    docker: 
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - run:
+          name: Install AWS Cli V2
+          command: | 
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Install tar & Zip
+          command: | 
+            sudo apt-get update
+            sudo apt-get install -y tar unzip
+     
+      - run: 
+          name: Install Ansible
+          command: |
+            python3 -m pip install --user ansible
+      - run:
+          name: Install NodeJs 
+          command: | 
+            curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+            sudo apt install -y nodejs
+      - attach_workspace:
+          at: .
+      - add_ssh_keys:
+          fingerprints:
+            - "79:0c:e3:cd:0c:ab:6b:f9:80:d5:c9:83:b2:4b:ed:f9"
+      - run: 
+          name: Install Dependencies 
+          command: | 
+            cd backend
+            npm i
+      - run: 
+          name: Build Backend Package
+          command: | 
+            cd backend
+            npm run build 
+            tar -czf artifact.tar.gz dist/* package*
+            cd ..
+            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
+      - run: 
+          name: Deploy Backend 
+          command: | 
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - destroy-environment
+      - revert-migrations
 
 workflows:
   default:
