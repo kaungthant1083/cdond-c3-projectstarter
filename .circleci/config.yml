@@ -8,8 +8,7 @@ commands:
           name: Add env vars to .env file
           command: |
             echo ENVIRONMENT=$ENVIRONMENT > "./backend/.env"
-            echo $ENVIRONMENT
-            echo $TYPEORM_MIGRATIONS_DIR
+            printenv ENVIRONMENT
             echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "./backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "./backend/.env"
             echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "./backend/.env"
@@ -354,6 +353,7 @@ jobs:
             npm run build 
             tar -czf artifact.tar.gz dist/* package*
             ls -al
+            mkdir -p ../.circleci/ansible/roles/deploy/files
             cp artifact.tar.gz ../.circleci/ansible/roles/deploy/files/
             ls -al ../.circleci/ansible/roles/deploy/files/
       - run: 
