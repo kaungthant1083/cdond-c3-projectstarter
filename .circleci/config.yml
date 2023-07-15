@@ -8,6 +8,8 @@ commands:
           name: Add env vars to .env file
           command: |
             echo ENVIRONMENT=$ENVIRONMENT > "./backend/.env"
+            echo $ENVIRONMENT
+            echo $TYPEORM_MIGRATIONS_DIR
             echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "./backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "./backend/.env"
             echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "./backend/.env"
@@ -252,12 +254,13 @@ jobs:
              npm install
              npm run migrations > migrations_dump.txt
              cat migrations_dump.txt
+             ls -al ./src/migrations/
       - run:
           name: Send migration results to kvdb.io
           command: |
             if grep -q "has been executed successfully." ./backend/migrations_dump.txt
             then
-              curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '2'
+              curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             else
               echo "No migrations are pending" 
             fi
