@@ -408,6 +408,7 @@ jobs:
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
             if curl -s $API_URL/api/status | grep "ok"
             then
                 exit 0
@@ -428,6 +429,7 @@ jobs:
           WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
           WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+
   cloudfront-update:
     docker:
       - image: cimg/base:stable
